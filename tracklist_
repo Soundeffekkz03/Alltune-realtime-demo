@@ -1,0 +1,94 @@
+my_tracklist = ["Midnight Study",  #list Of Songs Tiles for my_track1
+             "Neon Drizzle",
+             "Wram Vinyl",
+             "Deep Focus",
+             "City Lights",
+             "Sunset Horizon",]
+my_tracklist.sort()     # This will sort Songs By Alphebet order 
+
+for i in range(len(my_tracklist)):
+    print("my_trackslist","likes")
+
+likes = [
+    56, #"Midnight Study"
+    12,#"Neon Drizzle"
+    61,#"Warm Vinyl"
+    28,#"Deep Focus"
+    11,#"City Lights"
+    35,#"Sunset Horison"
+]
+likes.sort()
+
+
+my_tracklist = ["Snowy Night", #list Of Songs Tiles for my_track2
+             "Neon Drizzle",
+             "Fall Time",
+             "Lone Wolf",
+             "Crazy Love Explostion",
+             "Falling Apart",
+             "WIthin Good Reason",
+             "Could Of Should Of",
+             "Better Tomorrow"]
+my_tracklist.sort()
+
+           # This will sort Songs By alphebet order
+
+likes = [
+    22,#"Snowy Night" 
+    10,#"Fall Time"
+    100,#"Lone Wolf"
+    73,#"Crazy Love Explostion"
+    88,#"Fall Time"
+    25,#"WIthin Good Reason"
+    57,#"Could Of Should Of"
+    90,#"Better Tomorrow"
+]
+
+likes.sort()
+
+for i in range(len(my_tracklist,)):    
+    print("my_tracklist", "likes")
+    
+
+my_tracklist = ["Foxy Tail",     #list Of Songs Tiles for my_track3"Neon Drizzle",
+                "When Its Over",
+                "Dog Ate My Homework",
+                "For Better Or For Worst",
+                "Till The Wheels Fall Off",
+                "Only One Can Win"]
+my_tracklist.sort()             # This will sort Songs By alphebet order
+
+likes = [
+    56,#Foxy Tail"
+    13,#"Dog Ate My Homework"
+    98,#"For Better OR Worst"
+    67,#"Till The Wheels Fall Off"
+    45,#"Only One Can Win"
+    27,#"When Its Over"
+]
+likes.sort()
+
+for i in range(len(my_tracklist)):
+    print("tracklist"[i], "→", likes[i], "likes") 
+
+
+# likes = []
+
+for i in range(len(my_tracklist)):
+    pair = (my_tracklist[i], likes[i])
+    likes.append(pair)   
+ 
+ #my_tracklist.sort()(key=lambda x: x[1], reverse=True) 
+
+top_3 = likes [:3]  
+
+
+def top_my_tracklist(my_tracklist, likes, limit):
+    combined = []
+
+    for i in range(len(my_tracklist)):
+        combined.append((my_tracklist[i], likes[i]))
+
+    combined.sort(key=lambda x: x[1], reverse=True)
+    return combined[:limit]
+
