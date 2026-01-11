@@ -1,0 +1,277 @@
+# file: alltune_realtime_demo.py
+"""
+Alltune demo: Frontend + Backend user input (username + email) with real-time-ish updates.
+
+What you get:
+- Backend: FastAPI JSON API
+  - POST /api/users  -> create user
+  - GET  /api/users  -> list users (sorted by newest)
+- Frontend: minimal HTML + JS
+  - form input for username + email
+  - submits to backend
+  - polls every 1s to refresh user list
+
+Run:
+  1) python -m venv .venv
+  2) source .venv/bin/activate   (Windows: .venv\\Scripts\\activate)
+  3) pip install fastapi uvicorn
+  4) python alltune_realtime_demo.py
+  5) Open: http://127.0.0.1:8000
+
+Notes:
+- Uses in-memory storage (resets on restart).
+- Good next step: persist to SQLite, add auth, replace polling with WebSockets.
+"""
+
+from __future__ import annotations
+
+import re
+import time
+from dataclasses import dataclass
+from typing import List
+
+from fastapi import FastAPI, HTTPException
+from fastapi.responses import HTMLResponse
+from pydantic import BaseModel, Field
+
+app = FastAPI(title="Alltune Demo API", version="0.1.0")
+
+
+# -----------------------------
+# Data model (in-memory store)
+# -----------------------------
+
+@dataclass(frozen=True)
+class User:
+    username: str
+    email: str
+    created_at: float
+
+
+USERS: List[User] = []
+
+
+# -----------------------------
+# Validation helpers
+# -----------------------------
+
+USERNAME_RE = re.compile(r"^[a-zA-Z][a-zA-Z0-9._-]{2,31}$")
+EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+
+
+def normalize_username(raw: str) -> str:
+    return raw.strip()
+
+
+def normalize_email(raw: str) -> str:
+    return raw.strip().lower()
+
+
+def validate_username(username: str) -> None:
+    """
+    Rules (typical):
+    - 3–32 chars
+    - starts with a letter
+    - letters, numbers, dot, underscore, dash
+    """
+    if not USERNAME_RE.match(username):
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid username. Use 3-32 chars, start with a letter, and only letters/numbers/._-",
+        )
+
+
+def validate_email(email: str) -> None:
+    if not EMAIL_RE.match(email):
+        raise HTTPException(status_code=400, detail="Invalid email format.")
+
+
+# -----------------------------
+# API schemas
+# -----------------------------
+
+class CreateUserIn(BaseModel):
+    username: str = Field(..., min_length=1, max_length=64)
+    email: str = Field(..., min_length=3, max_length=254)
+
+
+class UserOut(BaseModel):
+    username: str
+    email: str
+    created_at: float
+
+
+# -----------------------------
+# Backend API (what frontend calls
+# -----------------------------
+
+@app.post("/api/users", response_model=UserOut)
+def create_user(payload: CreateUserIn) -> UserOut:
+    username = normalize_username(payload.username)
+    email = normalize_email(payload.email)
+
+    validate_username(username)
+    validate_email(email)
+
+    # Real-world check: unique username or unique email
+    for u in USERS:
+        if u.username.lower() == username.lower():
+            raise HTTPException(status_code=409, detail="Username already exists.")
+        if u.email == email:
+            raise HTTPException(status_code=409, detail="Email already exists.")
+
+    user = User(username=username, email=email, created_at=time.time())
+    USERS.append(user)
+
+    return UserOut(username=user.username, email=user.email, created_at=user.created_at)
+
+
+@app.get("/api/users", response_model=list[UserOut])
+def list_users() -> list[UserOut]:
+    # newest first
+    newest_first = sorted(USERS, key=lambda u: u.created_at, reverse=True)
+    return [UserOut(username=u.username, email=u.email, created_at=u.created_at) for u in newest_first]
+
+
+# -----------------------------
+# Frontend (single page)
+# -----------------------------
+
+INDEX_HTML = """<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Alltune Demo — Community Signup</title>
+    <style>
+      body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 24px; }
+      .card { max-width: 760px; border: 1px solid #ddd; border-radius: 12px; padding: 16px; }
+      .row { display: flex; gap: 12px; flex-wrap: wrap; }
+      input { padding: 10px; border-radius: 10px; border: 1px solid #ccc; min-width: 240px; }
+      button { padding: 10px 14px; border-radius: 10px; border: 1px solid #333; background: #111; color: #fff; cursor: pointer; }
+      button:disabled { opacity: 0.6; cursor: not-allowed; }
+      .muted { color: #666; font-size: 14px; }
+      .error { color: #b00020; white-space: pre-wrap; }
+      ul { margin: 12px 0 0 18px; }
+      li { margin: 6px 0; }
+      code { background: #f5f5f5; padding: 2px 6px; border-radius: 6px; }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h2>Alltune (Demo) — Ad-free Music Community</h2>
+      <p class="muted">Type a username + email to “join”. The member list updates every second (simple real-time polling).</p>
+
+      <div class="row">
+        <input id="username" placeholder="username (e.g., mira_dev)" />
+        <input id="email" placeholder="email (e.g., mira@email.com)" />
+        <button id="joinBtn">Join community</button>
+      </div>
+
+      <p id="msg" class="muted"></p>
+      <p id="err" class="error"></p>
+
+      <h3>Community members</h3>
+      <div class="muted">Backend endpoints: <code>POST /api/users</code>, <code>GET /api/users</code></div>
+      <ul id="members"></ul>
+    </div>
+
+    <script>
+      const usernameEl = document.getElementById("username");
+      const emailEl = document.getElementById("email");
+      const joinBtn = document.getElementById("joinBtn");
+      const msgEl = document.getElementById("msg");
+      const errEl = document.getElementById("err");
+      const membersEl = document.getElementById("members");
+
+      function setError(text) {
+        errEl.textContent = text || "";
+      }
+
+      function setMsg(text) {
+        msgEl.textContent = text || "";
+      }
+
+      function escapeHtml(s) {
+        return s.replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;");
+      }
+
+      async function refreshMembers() {
+        try {
+          const res = await fetch("/api/users");
+          const data = await res.json();
+
+          membersEl.innerHTML = "";
+          for (const u of data) {
+            const li = document.createElement("li");
+            const t = new Date(u.created_at * 1000).toLocaleTimeString();
+            li.innerHTML = `<b>${escapeHtml(u.username)}</b> — ${escapeHtml(u.email)} <span class="muted">(${t})</span>`;
+            membersEl.appendChild(li);
+          }
+        } catch (e) {
+          // Keep quiet; polling should not spam.
+        }
+      }
+
+      async function join() {
+        setError("");
+        setMsg("");
+        joinBtn.disabled = true;
+
+        const payload = {
+          username: usernameEl.value,
+          email: emailEl.value
+        };
+
+        try {
+          const res = await fetch("/api/users", {
+            method: "POST",
+            headers: {"Content-Type":"application/json"},
+            body: JSON.stringify(payload)
+          });
+
+          const data = await res.json();
+
+          if (!res.ok) {
+            const detail = data.detail || "Unknown error";
+            setError(typeof detail === "string" ? detail : JSON.stringify(detail, null, 2));
+            return;
+          }
+
+          setMsg(`✅ Joined as ${data.username}`);
+          usernameEl.value = "";
+          emailEl.value = "";
+          await refreshMembers();
+        } catch (e) {
+          setError("Network error. Is the server running?");
+        } finally {
+          joinBtn.disabled = false;
+        }
+      }
+
+      joinBtn.addEventListener("click", join);
+      emailEl.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") join();
+      });
+
+      refreshMembers();
+      setInterval(refreshMembers, 1000);
+    </script>
+  </body>
+</html>
+"""
+
+
+@app.get("/", response_class=HTMLResponse)
+def index() -> str:
+    return INDEX_HTML
+
+
+# -----------------------------
+# Entrypoint
+# -----------------------------
+
+if __name__ == "__main__":
+    import uvicorn
+
+    uvicorn.run(app, host="127.0.0.1", port=8000, reload=False)
