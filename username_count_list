@@ -1,0 +1,214 @@
+usernames = [
+    "alex322",
+    "lisacherry",
+    "My_Name_Is_Ed",
+    "Clutch_Master78",
+    "Toyota_my_Camery2736",
+    "TheHam_Is_honeyPIE",
+    "Tommy87_Bill",
+    "The_G.O.A.T_89",
+]
+usernames.sort()  # List usernames In Alphbet Order
+
+emails = [          # Username Emails 
+    "mira@crazymail.com"
+    "alex_Silver76@email.com"
+    "Novacave78@crazymail.com"
+    "pushPull34@crazymail.com"
+    "BigGal_missionPie@email.com"
+    "CatDogfeed@Dockmail.com"
+    "R35Turbocar@email.com"
+    "pushPull34@crazymail.com"
+    "GoKartplus76Ghost@crazymail.com"
+    "alex_Silver76@email.com"
+    "Sonic_Boom108@Dockmail.com"
+    "KevinSmith_Smith@email.com"
+    "CatDogfeed@Dockmail.com"
+    "Maddy_Patty99@crazymail.com"
+    "CrabbyPatties765@email.com"
+    "Novacave78@crazymail.com"
+    "CrustyCrabPizza@crazymail.com"
+    "MyLeg56@email.com"
+]
+
+emails.sort()
+
+
+   
+
+login_counts = [
+    192, #alex322
+    88,  #lisacherry
+    14,  #My_Name_Is_Ed
+    23,  #Clutch_Master78
+    78,  #Toyota_my Camery2736
+    104, #TheHam_Is_honeyPIE
+    234, #T0mmy87_Bill
+    125, #The_G.O.A.T_89
+    464, #EvA_Tee_2000
+    965, #My_DoG4_ateHomwork
+    679, #RAnDy_wEild_fire_Guy
+    369, #ProdigyStar_360_1
+    469, #Dale3000439
+    869,
+    746,
+    346,
+    154,
+    554,
+]
+login_counts.sort()  #  List Loogin Counts In Order From Large to Small Numbers
+
+
+users = []
+
+for i in range(len(usernames)):
+    users.append({
+        "usernames": usernames,
+        "email": emails,
+        "login": login_counts, 
+    })
+
+
+user_activity = []
+
+
+for i in range(len(usernames)):
+    pair = (usernames[i], login_counts[i])
+    user_activity.append(pair)
+[       
+    ("alex322", 192),
+    ("lisacherry", 88),
+    ("My_Name_Is_Ed", 14),
+    ("Clutch_Master78", 23),
+    ("Toyota_my_camery2736", 78),
+    ("TheHam_Is_honeyPIE", 104),
+    ("Tommy87_Bill", 234),
+    ("The_G.O.A.T_89", 125),
+    ("EvA_Tee_2000", 464),
+    ("My_DoG4_ateHOmwork",965),
+    ("RAnDy_wEild_fire_Guy", 679),
+    ("ProdiGyStar_360_1", 369),
+    ("Dale3000439",469),
+    ("Jane_Dro78",869),
+    ("CinDyLue8WhO",746),
+    ("whOVille_GrincH900",346),
+    ("JayGrindSlappy",154),
+    ("ScoccerMOm_min_vAn",554)
+]
+
+user_activity.sort()
+
+usernaems = [
+    "EvA_Tee_2000"
+    "My_DoG4_ateHOmwork"
+    "RAnDy_wEild_fire_Guy"
+    "ProdiGyStar_360_1"
+    "Dale3000439"
+    "Jane_Dro78"
+    "CinDyLue8WhO"
+    "whOVille_GrincH900"
+    "JayGrindSlappy"
+    "ScoccerMOm_min_vAn"
+]
+
+usernames.sort() # List usernames In Alphebet Order 
+
+
+login_counts = [
+   3,764, #EvA_Tee_2000
+   6,565, #My_DoG4_ateHOmwork
+   93,879, #RAnDy_wEild_fire_Guy
+   64,569, #ProdiGyStar_360_1
+   7,369, #Dale3000439
+   969, #Jane_Dro78
+   3,246, #CinDyLue8WhO
+   1,546, #whOVille_GrincH900
+   1,154, #JayGrindSlappy
+   4,754, #SoccerMon_mini_vAn
+]
+login_counts.sort() # List Login counts In order from Large to Small Numbers 
+
+
+user_activity.sort(key=lambda item: item[1], reverse=True)
+
+
+top_user = user_activity[:5]
+
+combined = []
+
+
+def top_active_users(usernames, login_counts, limits):
+    combned = []
+
+for i in range(len(usernames)):
+    combined.append((usernames[i], login_counts[i]))    
+
+combined.sort(key=lambda x: x[1], reverse=True)
+                              #------------------------------------------------------------
+def process_users(users):    #---------------------- automation tool   Batch Processing 
+    results = []             #-------------------------------------------------------------
+
+    for user in users:
+        results.append(user.upper())
+
+    return results
+
+def validate_usernames(usernames):                 # automation tool Validation Automation
+    valid = []
+
+    for name in usernames:
+        if len(name) >= 3 and " " not in name:
+            valid.append(name)
+
+    return valid
+
+def find_inactive_users(users, login_counts, threshold):    # automation tool Filtering and Alerts
+    inactive = []
+
+    for i in range(len(users)):
+        if login_counts[i] < threshold:
+            inactive.append(users[i])
+
+    return inactive
+
+
+def top_performers(names, scores, limit):          # Automation tool Ranking and Reporting 
+    combined = []
+
+    for i in range(len(names)):
+        combined.append((names[i], scores[i]))
+
+    combined.sort(key=lambda x: x[1], reverse=True)
+    return combined[:limit]
+
+
+
+def daily_cleanup(logs):                          # Automation tool Automation tasks 
+    cleaned = []
+
+    for log in logs:
+        if "ERROR" not in log:
+            cleaned.append(log)
+
+    return cleaned
+
+def normalize_emails(emails):                    # Automation tool Automation Pipline  list - in list - out 
+    normalized = []
+
+    for email in emails:
+        normalized.append(email.strip().lower())
+
+    return normalized
+
+
+def flag_users(users, reports):               # Automation tool Automation Triggers if this - than that logic 
+    flagged = []
+
+    for i in range(len(users)):
+        if reports[i] >= 3:
+            flagged.append(users[i])
+
+    return flagged
+
+
+
